@@ -1,0 +1,325 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# 项目规则与指南
+
+本项目主要用于深度学习端到端天气预测优化 
+1. 使用Swin-Transformer预训练好的模型（Canglong）进行周尺度的预报
+2. 优化全球NOAA气象战点数据，提取2000以后的共有数据站点lon, lat信息
+3. 使用一个TransFusion算法建立预测的图像和真实站点信息之间的关系
+4. 利用建立好的模型直接将预测的天气网格进行端到端优化，主要针对气温和降水
+
+# E2E Constrain 项目文件架构
+
+## 项目根目录结构
+```
+e2e_constrain/
+├── .cursor/                    # Cursor IDE 配置文件
+├── .git/                       # Git 版本控制文件
+├── repo/                       # 第三方仓库和依赖项目
+├── doc/                        # 项目文档
+├── code/                       # 主要代码目录
+```
+
+## 详细文件架构
+
+### 1. 文档目录 (`doc/`)
+```
+doc/
+└── s41586-025-08897-0.pdf     # 研究论文文档 (15MB)
+```
+
+### 2. 第三方仓库目录 (`repo/`)
+```
+repo/
+├── transfusion-pytorch-main/   # Transfusion PyTorch 实现
+│   ├── transfusion_pytorch/    # 核心库代码
+│   ├── tests/                  # 测试文件
+│   ├── data/                   # 数据文件
+│   ├── .github/                # GitHub 配置
+│   ├── train_*.py             # 各种训练脚本
+│   │   ├── train_toy.py
+│   │   ├── train_text_only.py
+│   │   ├── train_mnist_with_unet.py
+│   │   ├── train_mnist_vae.py
+│   │   ├── train_mnist.py
+│   │   ├── train_latent_with_text.py
+│   │   ├── train_latent_only.py
+│   │   ├── train_image_only_with_unet.py
+│   │   └── train_image_only.py
+│   ├── transfusion.png        # 项目图片
+│   ├── README.md              # 项目说明
+│   ├── pyproject.toml         # Python 项目配置
+│   ├── LICENSE                # 许可证
+│   └── .gitignore             # Git 忽略文件
+│
+└── aardvark-weather-public-main/  # Aardvark 天气预测项目
+    ├── aardvark/              # 核心代码库
+    ├── training/              # 训练相关代码
+    ├── notebooks/             # Jupyter 笔记本
+    ├── data/                  # 数据文件
+    ├── README.md              # 项目说明
+    ├── LICENSE                # 许可证
+    └── environment.yml        # Conda 环境配置
+```
+
+### 3. 主要代码目录 (`code/`)
+```
+code/
+├── test.ipynb                 # 主要测试笔记本 (42KB, 969行)
+│
+├── canglong/                  # 核心算法模块
+│   ├── __pycache__/           # Python 缓存文件
+│   ├── .ipynb_checkpoints/    # Jupyter 检查点
+│   ├── Conv4d.py              # 4D 卷积实现 (5.6KB, 141行)
+│   ├── crop.py                # 裁剪功能 (1.6KB, 54行)
+│   ├── earth_position.py      # 地球位置计算 (1.6KB, 45行)
+│   ├── embed.py               # 嵌入层实现 (13KB, 324行)
+│   ├── helper.py              # 辅助函数 (2.9KB, 117行)
+│   ├── pad.py                 # 填充操作 (1.9KB, 61行)
+│   ├── recovery.py            # 恢复算法 (10KB, 255行)
+│   └── shift_window.py        # 滑动窗口 (3.4KB, 79行)
+│
+├── utils/                     # 工具函数模块
+│   ├── __pycache__/           # Python 缓存文件
+│   ├── .ipynb_checkpoints/    # Jupyter 检查点
+│   ├── crop.py                # 裁剪工具 (1.5KB, 54行)
+│   ├── earth_position.py      # 地球位置工具 (1.5KB, 45行)
+│   ├── embed.py               # 嵌入工具 (4.3KB, 121行)
+│   ├── pad.py                 # 填充工具 (1.9KB, 61行)
+│   ├── plot.py                # 绘图工具 (32KB, 1122行)
+│   ├── plot-LAPTOP-623AJVGG.py # 绘图工具备份 (32KB, 1122行)
+│   ├── recovery.py            # 恢复工具 (2.3KB, 69行)
+│   └── shift_window.py        # 滑动窗口工具 (3.3KB, 79行)
+│
+├── constant_masks/            # 常量掩码数据
+│   ├── input_tensor.pt        # 输入张量 (16MB)
+│   ├── land_cover.npy         # 土地覆盖数据 (1014KB, 51077行)
+│   ├── ocean_dem.tif          # 海洋数字高程模型 (1018KB, 9315行)
+│   ├── soil_type.npy          # 土壤类型数据 (7.9MB)
+│   ├── soil_type.tif          # 土壤类型 TIFF (4.0MB)
+│   ├── topography.npy         # 地形数据 (4.0MB)
+│   └── topography_ocean.npy   # 海洋地形数据 (1014KB, 9273行)
+│
+└── data/                      # 地理数据文件
+    ├── china.dbf              # 中国边界数据库文件 (2.2KB)
+    ├── china.prj              # 中国投影文件 (145B)
+    ├── china.sbn              # 中国空间索引 (460B)
+    ├── china.sbx              # 中国空间索引头 (148B)
+    ├── china.shp              # 中国形状文件 (445KB, 1299行)
+    ├── china.shp.xml          # 中国形状文件元数据 (435B)
+    ├── china.shx              # 中国形状索引 (372B)
+    ├── dashline.dbf           # 虚线数据库文件 (62KB)
+    ├── dashline.prj           # 虚线投影文件 (145B)
+    ├── dashline.sbn           # 虚线空间索引 (4.2KB)
+    ├── dashline.sbx           # 虚线空间索引头 (316B)
+    ├── dashline.shp           # 虚线形状文件 (105KB, 197行)
+    ├── dashline.shp.xml       # 虚线形状文件元数据 (1.9KB)
+    └── dashline.shx           # 虚线形状索引 (3.5KB)
+```
+
+我的气象观测站点数据存储在/home/lhwang/Desktop/data/NOAA
+其中这里有2025 2024 2023 ... 1929等文件夹，每年文件夹有该年所有站点的数据，例如打开2023
+其中有99999994996.csv, 99999994995.csv, ..., 每个文件代表一个观测站，打开观测站，前几行信息如下，可以看到每日一个记录，同时有唯一的经纬度标记
+STATION	DATE	LATITUDE	LONGITUDE	ELEVATION	NAME	TEMP	TEMP_ATTRIBUTES	DEWP	DEWP_ATTRIBUTES	SLP	SLP_ATTRIBUTES	STP	STP_ATTRIBUTES	VISIB	VISIB_ATTRIBUTES	WDSP	WDSP_ATTRIBUTES	MXSPD	GUST	MAX	MAX_ATTRIBUTES	MIN	MIN_ATTRIBUTES	PRCP	PRCP_ATTRIBUTES	SNDP	FRSHTT
+99999963831	2003/1/1	32.3378	-89.0703	114	NEWTON 5 ENE, MS US	47.2	24	9999.9	0	9999.9	0	999.9	0	999.9	0	3.8	24	5.6	999.9	58.6	 	42.6	 	1.87	G	999.9	0
+99999963831	2003/1/2	32.3378	-89.0703	114	NEWTON 5 ENE, MS US	45.7	24	9999.9	0	9999.9	0	999.9	0	999.9	0	3.4	24	7.8	999.9	49.1	 	42.6	 	0	G	999.9	0
+99999963831	2003/1/3	32.3378	-89.0703	114	NEWTON 5 ENE, MS US	37.9	24	9999.9	0	9999.9	0	999.9	0	999.9	0	7	24	9.7	999.9	43.7	 	34.2	 	0	G	999.9	0
+99999963831	2003/1/4	32.3378	-89.0703	114	NEWTON 5 ENE, MS US	35.5	24	9999.9	0	9999.9	0	999.9	0	999.9	0	1.1	24	2.9	999.9	56.1	 	23.2	 	0	G	999.9	0
+99999963831	2003/1/5	32.3378	-89.0703	114	NEWTON 5 ENE, MS US	48.1	24	9999.9	0	9999.9	0	999.9	0	999.9	0	2	24	4.7	999.9	63.1	 	38.1	 	0	G	999.9	0
+99999963831	2003/1/6	32.3378	-89.0703	114	NEWTON 5 ENE, MS US	43	24	9999.9	0	9999.9	0	999.9	0	999.9	0	2.6	24	7.6	999.9	56.8	 	30.2	 	0	G	999.9	0
+99999963831	2003/1/7	32.3378	-89.0703	114	NEWTON 5 ENE, MS US	36.3	24	9999.9	0	9999.9	0	999.9	0	999.9	0	2.1	24	4.3	999.9	50.5	 	22.6	 	0	G	999.9	0
+99999963831	2003/1/8	32.3378	-89.0703	114	NEWTON 5 ENE, MS US	41.8	24	9999.9	0	9999.9	0	999.9	0	999.9	0	1.7	24	4.7	999.9	64.2	 	28.6	 	0	G	999.9	0
+99999963831	2003/1/9	32.3378	-89.0703	114	NEWTON 5 ENE, MS US	51.8	24	9999.9	0	9999.9	0	999.9	0	999.9	0	1.9	24	6.2	999.9	68.2	 	35.6	 	0	G	999.9	0
+99999963831	2003/1/10	32.3378	-89.0703	114	NEWTON 5 ENE, MS US	51.7	24	9999.9	0	9999.9	0	999.9	0	999.9	0	5.1	24	8.5	999.9	64.2	 	42.6	 	0.01	G	999.9	0
+99999963831	2003/1/11	32.3378	-89.0703	114	NEWTON 5 ENE, MS US	35.1	24	9999.9	0	9999.9	0	999.9	0	999.9	0	3.7	24	6.8	999.9	44.4	 	25.3	 	0	G	999.9	0
+99999963831	2003/1/12	32.3378	-89.0703	114	NEWTON 5 ENE, MS US	35	24	9999.9	0	9999.9	0	999.9	0	999.9	0	3.8	24	5.8	999.9	40.1	 	31.6	 	0	G	999.9	0
+
+| 排序 | 列名             | 解析                                                                                 |
+|------|------------------|--------------------------------------------------------------------------------------|
+| 1    | STATION          | 观测站点编号                                                                         |
+| 2    | DATE             | 观测日期                                                                             |
+| 3    | LATITUDE         | 纬度，坐标为WGS1984（北纬为正数，南纬为负数）                                         |
+| 4    | LONGITUDE        | 经度，坐标为WGS1984（东经为正数，西经为负数）                                         |
+| 5    | ELEVATION        | 海拔，单位为m                                                                         |
+| 6    | NAME             | 站点名称及所属国家代码                                                               |
+| 7    | TEMP             | 指标释义：平均温度；单位：华氏度；缺失值表示方式：9999.9                              |
+| 8    | TEMP_ATTRIBUTES  | 计算平均温度的观测次数                                                               |
+| 9    | DEWP             | 指标释义：平均露点；单位：华氏度；缺失值表示方式：9999.9                              |
+| 10   | DEWP_ATTRIBUTES  | 计算平均露点的观测次数                                                               |
+| 11   | SLP              | 指标释义：平均海平面压力；单位：毫巴/百帕；缺失值表示方式：9999.9                     |
+| 12   | SLP_ATTRIBUTES   | 计算平均海平面压力的观测次数                                                         |
+| 13   | STP              | 指标释义：平均观测站压力；单位：毫巴/百帕；缺失值表示方式：9999.9                     |
+| 14   | STP_ATTRIBUTES   | 计算平均观测站压力的观测次数                                                         |
+| 15   | VISIB            | 指标释义：平均能见度；单位：英里；缺失值表示方式：999.9                               |
+| 16   | VISIB_ATTRIBUTES | 计算平均能见度的观测次数                                                             |
+| 17   | WDSP             | 指标释义：平均风速；单位：节；缺失值表示方式：999.9                                   |
+| 18   | WDSP_ATTRIBUTES  | 计算平均风速的观测次数                                                               |
+| 19   | MXSPD            | 指标释义：最大瞬时风速；单位：节；缺失值表示方式：999.9                               |
+| 20   | GUST             | 指标释义：最大持续风速的观测次数                                                     |
+| 21   | MAX              | 指标释义：最高气温；单位：华氏度；缺失值表示方式：9999.9                              |
+| 22   | MAX_ATTRIBUTES   | 计算最高气温的观测次数                                                               |
+| 23   | MIN              | 指标释义：最低气温；单位：华氏度；缺失值表示方式：9999.9                              |
+| 24   | MIN_ATTRIBUTES   | 计算最低气温的观测次数                                                               |
+| 25   | PRCP             | 指标释义：降水量；单位：英寸；缺失值表示方式：99.99                                   |
+| 26   | PRCP_ATTRIBUTES  | 计算降水量的观测次数                                                                 |
+| 27   | SNDP             | 指标释义：积雪深度；单位：英寸；缺失值表示方式：999.9                                 |
+
+生成气象站周尺度数据时，因为我只需要特定年份范围，因此第一步先打开/home/lhwang/Desktop/data/NOAA/2023（2024）检索相同的站点，仅仅选取共有站点相同的文件名称进行操作。先根据共有站点，按站点自然名称顺序，先整理出一个[station_num, 2]的矩阵，其中station_num为共有的所有站点数，2按照先经度再纬度的形式排列，代表站点空间位置。
+
+稍后整理输出一个[weeks, station_num, 4]的矩阵，如果是2022-2023年，这就需要计算2022年和2023年的周平均值，周数后面有提到，需要注意每年都需要单独划分周数，计算站点周平均时注意缺失值的处理，可以使用nanmean等方式避免计算错误，还需要转换为标准单位，变量和单位顺序如下降水(mm/day), 风速(m/s), 露点温度(°C), 温度(°C)，如果是2022-2023年，期望输出就是[52*2, station_num, 4]
+
+输入还需要一个orographic_info，代表站点的地理属性[station_num, 3]，其中三个属性为：constant_masks/land_cover.npy, constant_masks/soil_type.npy, constant_masks/topography.npy，纬度都是(721,1440)
+
+## 项目模块说明
+
+### 核心模块 (`canglong/`)
+- **Conv4d.py**: 实现4维卷积神经网络层
+- **embed.py**: 嵌入层和特征提取功能
+- **recovery.py**: 数据恢复和重建算法
+- **shift_window.py**: 滑动窗口处理
+- **earth_position.py**: 地球坐标和位置计算
+- **crop.py**: 数据裁剪和区域选择
+- **pad.py**: 数据填充和边界处理
+- **helper.py**: 通用辅助函数
+
+### 工具模块 (`utils/`)
+- **plot.py**: 数据可视化和绘图功能
+- 其他文件与 `canglong/` 模块功能类似，提供工具版本的实现
+
+### 数据模块
+- **constant_masks/**: 包含地形、土壤、土地覆盖等常量掩码数据
+- **data/**: 包含中国地理边界和虚线数据的 Shapefile 格式文件
+
+### 第三方依赖
+- **transfusion-pytorch-main/**: Transfusion 模型的 PyTorch 实现
+- **aardvark-weather-public-main/**: Aardvark 天气预测模型
+
+## 文件统计
+- **总目录数**: 约 20+ 个
+- **总文件数**: 约 60+ 个
+- **主要代码文件**: 约 30+ 个 Python 文件
+- **数据文件**: 约 20+ 个（包含 .npy, .tif, .shp 等格式）
+- **文档文件**: 1 个 PDF 研究论文
+
+## 技术栈
+- **编程语言**: Python
+- **深度学习框架**: PyTorch
+- **数据格式**: NumPy arrays (.npy), TIFF images (.tif), Shapefiles (.shp)
+- **开发环境**: Jupyter Notebook, Cursor IDE
+- **版本控制**: Git
+
+## 2. 重点注意事项
+
+- 本项目的天气预测是季节-次季节的滚动预测，针对周尺度的
+- 与传统的ISO周划分不同，我们从每年的1月1日开始连续生成52个周，末尾经常剩余到12月30日（平年）或12月29日（闰年）
+- 这时一年剩下的1-2天不再当作下一周，即下一周从后一年的1月1日开始，1月1日-1月7日，而不是上一年的12月31日-1月6日
+
+## 2. 代码规范规则
+
+- 使用Jupyter Notebook进行数据分析和模型开发
+- 使用Python脚本进行数据处理和自动化任务
+- 代码文件命名规范：小Week	Date Range
+平年下一个周数对应为：
+Week 1	January 1 - January 7
+Week 2	January 8 - January 14
+Week 3	January 15 - January 21
+Week 4	January 22 - January 28
+Week 5	January 29 - February 4
+Week 6	February 5 - February 11
+Week 7	February 12 - February 18
+Week 8	February 19 - February 25
+Week 9	February 26 - March 4
+Week 10	March 5 - March 11
+Week 11	March 12 - March 18
+Week 12	March 19 - March 25
+Week 13	March 26 - April 1
+Week 14	April 2 - April 8
+Week 15	April 9 - April 15
+Week 16	April 16 - April 22
+Week 17	April 23 - April 29
+Week 18	April 30 - May 6
+Week 19	May 7 - May 13
+Week 20	May 14 - May 20
+Week 21	May 21 - May 27
+Week 22	May 28 - June 3
+Week 23	June 4 - June 10
+Week 24	June 11 - June 17
+Week 25	June 18 - June 24
+Week 26	June 25 - July 1
+Week 27	July 2 - July 8
+Week 28	July 9 - July 15
+Week 29	July 16 - July 22
+Week 30	July 23 - July 29
+Week 31	July 30 - August 5
+Week 32	August 6 - August 12
+Week 33	August 13 - August 19
+Week 34	August 20 - August 26
+Week 35	August 27 - September 2
+Week 36	September 3 - September 9
+Week 37	September 10 - September 16
+Week 38	September 17 - September 23
+Week 39	September 24 - September 30
+Week 40	October 1 - October 7
+Week 41	October 8 - October 14
+Week 42	October 15 - October 21
+Week 43	October 22 - October 28
+Week 44	October 29 - November 4
+Week 45	November 5 - November 11
+Week 46	November 12 - November 18
+Week 47	November 19 - November 25
+Week 48	November 26 - December 2
+Week 49	December 3 - December 9
+Week 50	December 10 - December 16
+Week 51	December 17 - December 23
+Week 52	December 24 - December 30
+
+写字母加下划线
+- 模型参数保存在`model_parameters.txt`中
+- 遵循PEP 8 Python代码风格指南
+- 为复杂代码段添加清晰的注释和文档
+- 代码尽量简单，避免复杂循环
+- 不使用各种复杂函数定义方式，平铺撰写
+- 读取遥感tif影像注意空值，mask=TRUE，注意避免极大极小值
+- 使用rioxarray等高级库处理，而少用gdal等复杂的方式
+
+## 3. 数据管理规则
+
+- 原始数据存储在`data/`目录下
+- 按类型组织处理后的数据
+- 使用CSV格式存储表格数据
+- 使用Shapefile格式存储空间数据
+
+
+## 4. 文档管理规则
+
+- 研究论文存储在`docs/`目录下
+- 维护课程材料和教程文档
+- 保持模型文档与代码同步
+- 记录所有实验及其结果
+- 在每个主要目录中包含README文件
+- 维护重要更新的变更日志
+
+## 5. 版本控制规则
+
+- 使用Git进行版本控制
+- 定期备份主要文件
+
+## 6. 工作流程规则
+
+### 6.2 模型开发
+- 将模型参数保存到`model_parameters.txt`
+- 记录模型架构和超参数
+- 跟踪模型性能指标
+
+### 6.3 结果分析
+- 使用Jupyter Notebook进行结果可视化
+- 使用matplotlib可视化
+- 绘图使用Arial字体
+- 绘制图时图中内容用英文
+- 生成评估指标和图表
+- 记录分析方法与发现
+- 与基准模型比较结果
+
