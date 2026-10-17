@@ -1,3 +1,7 @@
+<!-- readme-visual-refresh:banner -->
+![e2e_constrain — hand-drawn project banner](assets/readme/banner.svg)
+<!-- /readme-visual-refresh:banner -->
+
 # E2E Constrain Project
 
 ## Overview
@@ -87,4 +91,21 @@ Detailed documentation and usage examples can be found in the Jupyter notebooks:
 [Specify license information]
 
 ## Contributing
-[Specify contribution guidelines] 
+[Specify contribution guidelines]
+
+<!-- readme-visual-refresh:artwork-source -->
+[Editable banner artwork · Excalidraw](assets/readme/banner.excalidraw)
+<!-- /readme-visual-refresh:artwork-source -->
+
+
+<!-- readme-visual-refresh:result -->
+## Saved project output
+
+![Existing six-week CAS-Canglong precipitation forecast maps for May–June 2025.](assets/readme/result.png)
+
+Existing six-week CAS-Canglong precipitation forecast maps for May–June 2025.
+
+Historical project output, retained from the existing working files; it was not rerun for this documentation update.
+
+Source: `code/how_to_run.ipynb [zero-based cell 46, output 0]`.
+<!-- /readme-visual-refresh:result -->
